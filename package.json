@@ -23,6 +23,7 @@
     "uuid": "^13.0.0",
     "ws": "^8.18.3",
     "y-monaco": "^0.1.6",
+    "y-mongodb-provider": "^0.2.1",
     "y-websocket": "^3.0.0",
     "yjs": "^13.6.27"
   },

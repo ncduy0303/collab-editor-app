@@ -165,6 +165,48 @@ body {
   flex-direction: column;
 }
 
+/* Notification Styles */
+.notification-banner {
+  background: #3b82f6;
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #2563eb;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.notification-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.room-stopped-banner {
+  background: #dc2626;
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-bottom: 1px solid #b91c1c;
+  text-align: center;
+}
+
 .editor-status {
   background: #2d2d2d;
   border-bottom: 1px solid #404040;
@@ -181,6 +223,12 @@ body {
   gap: 0.5rem;
 }
 
+.status-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .status-indicator {
   width: 8px;
   height: 8px;
@@ -191,6 +239,31 @@ body {
 .status-text {
   font-size: 0.875rem;
   color: #cccccc;
+}
+
+.stop-collaboration-btn {
+  background: #dc2626;
+  border: 1px solid #b91c1c;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stop-collaboration-btn:hover {
+  background: #b91c1c;
+  border-color: #991b1b;
+  transform: translateY(-1px);
+}
+
+.stop-collaboration-btn:active {
+  transform: translateY(0);
 }
 
 .monaco-editor-container {
@@ -466,6 +539,96 @@ body {
   }
   
   .error-btn {
+    width: 100%;
+  }
+}
+
+/* Modal and Confirmation Dialog Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.confirmation-modal {
+  background: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  padding: 2rem;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.confirmation-modal h3 {
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.confirmation-modal p {
+  color: #cccccc;
+  margin: 0 0 2rem 0;
+  line-height: 1.6;
+  font-size: 0.975rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.cancel-btn {
+  background: #404040;
+  border: 1px solid #606060;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.975rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: #505050;
+  border-color: #707070;
+}
+
+.confirm-btn {
+  background: #dc2626;
+  border: 1px solid #b91c1c;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.975rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.confirm-btn:hover {
+  background: #b91c1c;
+  border-color: #991b1b;
+}
+
+@media (max-width: 480px) {
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .cancel-btn,
+  .confirm-btn {
     width: 100%;
   }
 }

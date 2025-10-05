@@ -18,6 +18,12 @@ const CollaborativeEditor = ({ roomId }: CollaborativeEditorProps) => {
   const [error, setError] = useState<string | null>(null);
   const [userId] = useState(() => uuidv4());
   
+  // Room state management
+  const [isRoomActive, setIsRoomActive] = useState(true);
+  const [roomStoppedAt, setRoomStoppedAt] = useState<string | null>(null);
+  const [showStopConfirm, setShowStopConfirm] = useState(false);
+  const [notification, setNotification] = useState<string | null>(null);
+  
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const docRef = useRef<Y.Doc | null>(null);
   const providerRef = useRef<WebsocketProvider | null>(null);
@@ -95,6 +101,42 @@ const CollaborativeEditor = ({ roomId }: CollaborativeEditorProps) => {
         setIsLoading(false);
       });
 
+      // Handle custom messages for room state
+      provider.ws?.addEventListener('message', (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.type === 'room-stopped') {
+            setIsRoomActive(false);
+            setRoomStoppedAt(data.stoppedAt);
+            setNotification(data.message || 'Collaboration has been stopped.');
+            
+            // Make editor read-only
+            if (editorRef.current) {
+              editorRef.current.updateOptions({ readOnly: true });
+            }
+          } else if (data.type === 'room-state') {
+            setIsRoomActive(data.isActive);
+            setRoomStoppedAt(data.stoppedAt);
+            
+            if (!data.isActive && editorRef.current) {
+              editorRef.current.updateOptions({ readOnly: true });
+            }
+          } else if (data.type === 'edit-blocked') {
+            // Server blocked an edit attempt
+            setNotification('Edit blocked: ' + (data.message || 'Room is read-only'));
+            console.warn('Edit attempt blocked by server:', data);
+            
+            // Ensure editor is read-only
+            if (editorRef.current) {
+              editorRef.current.updateOptions({ readOnly: true });
+            }
+          }
+        } catch {
+          // Ignore non-JSON messages
+        }
+      });
+
       // Wait for the provider to connect
       await new Promise<void>((resolve) => {
         const checkConnection = () => {
@@ -116,6 +158,9 @@ const CollaborativeEditor = ({ roomId }: CollaborativeEditorProps) => {
       );
       bindingRef.current = binding;
 
+      // Request current room state
+      provider.ws?.send(JSON.stringify({ type: 'get-room-state' }));
+
       console.log('Collaborative editor initialized for room:', roomId);
       setIsLoading(false);
 
@@ -124,6 +169,17 @@ const CollaborativeEditor = ({ roomId }: CollaborativeEditorProps) => {
       setError('Failed to initialize collaborative editing');
       setIsLoading(false);
     }
+  };
+
+  const handleStopCollaboration = () => {
+    if (!isRoomActive || !providerRef.current?.ws) return;
+    
+    // Send stop collaboration message
+    providerRef.current.ws.send(JSON.stringify({ 
+      type: 'stop-collaboration' 
+    }));
+    
+    setShowStopConfirm(false);
   };
 
   const getStatusColor = () => {
@@ -166,6 +222,26 @@ const CollaborativeEditor = ({ roomId }: CollaborativeEditorProps) => {
 
   return (
     <div className="collaborative-editor">
+      {/* Notification banner */}
+      {notification && (
+        <div className="notification-banner">
+          <span>{notification}</span>
+          <button 
+            onClick={() => setNotification(null)}
+            className="notification-close"
+          >
+            ×
+          </button>
+        </div>
+      )}
+      
+      {/* Room stopped banner */}
+      {!isRoomActive && (
+        <div className="room-stopped-banner">
+          <span>🔒 Collaboration stopped {roomStoppedAt && `on ${new Date(roomStoppedAt).toLocaleString()}`} - Editor is now read-only</span>
+        </div>
+      )}
+      
       <div className="editor-status">
         <div className="status-section">
           <div 
@@ -176,11 +252,23 @@ const CollaborativeEditor = ({ roomId }: CollaborativeEditorProps) => {
           {isLoading && <div className="loading-spinner small"></div>}
         </div>
         
-        <UserPresence 
-          users={users} 
-          currentUser={currentUser} 
-          connectedUsersCount={connectedUsersCount} 
-        />
+        <div className="status-actions">
+          <UserPresence 
+            users={users} 
+            currentUser={currentUser} 
+            connectedUsersCount={connectedUsersCount} 
+          />
+          
+          {isRoomActive && connectionStatus === 'connected' && (
+            <button 
+              className="stop-collaboration-btn"
+              onClick={() => setShowStopConfirm(true)}
+              title="Stop collaboration and make room read-only"
+            >
+              ⛔ Stop Collaboration
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="monaco-editor-container">
@@ -201,9 +289,37 @@ const CollaborativeEditor = ({ roomId }: CollaborativeEditorProps) => {
             lineDecorationsWidth: 20,
             lineNumbersMinChars: 3,
             automaticLayout: true,
+            readOnly: !isRoomActive,
           }}
         />
       </div>
+      
+      {/* Stop collaboration confirmation dialog */}
+      {showStopConfirm && (
+        <div className="modal-overlay">
+          <div className="confirmation-modal">
+            <h3>Stop Collaboration</h3>
+            <p>
+              Are you sure you want to stop the collaboration session? 
+              This will make the room read-only for all users and cannot be undone.
+            </p>
+            <div className="modal-actions">
+              <button 
+                className="cancel-btn"
+                onClick={() => setShowStopConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="confirm-btn"
+                onClick={handleStopCollaboration}
+              >
+                Stop Collaboration
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

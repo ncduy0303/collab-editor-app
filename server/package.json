@@ -1,0 +1,18 @@
+{
+  "name": "collab-editor-server",
+  "version": "1.0.0",
+  "description": "WebSocket server for collaborative editor with stop collaboration feature",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@y/websocket-server": "^0.1.1",
+    "ws": "^8.18.3",
+    "yjs": "^13.6.27",
+    "y-mongodb-provider": "^0.2.1",
+    "mongodb": "^6.0.0"
+  }
+}
